@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>女性自我主体性测试</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+body{
+  font-family:"Noto Serif SC",serif;
+  background:#f6f8f7;
+  color:#2f2f2f;
+  line-height:1.9;
+  margin:0;
+}
+.container{
+  max-width:760px;
+  margin:auto;
+  padding:40px 20px;
+}
+.card{
+  background:#ffffff;
+  border-radius:16px;
+  padding:36px;
+  box-shadow:0 12px 36px rgba(0,0,0,.06);
+  margin-bottom:28px;
+}
+h1,h2,h3{
+  font-weight:600;
+}
+button{
+  background:#6fa58c;
+  color:#fff;
+  border:none;
+  padding:14px 26px;
+  border-radius:10px;
+  font-size:16px;
+  cursor:pointer;
+}
+.progressbar{
+  height:8px;
+  background:#dde7e2;
+  border-radius:6px;
+  overflow:hidden;
+  margin-bottom:24px;
+}
+.progress{
+  height:100%;
+  width:0%;
+  background:#6fa58c;
+  transition:.4s;
+}
+.option{
+  padding:14px;
+  margin:12px 0;
+  border-radius:10px;
+  cursor:pointer;
+  background:#f2f6f4;
+}
+.option:hover{
+  background:#e7f0ec;
+}
+.hidden{display:none}
+
+.dimension{
+  margin-top:40px;
+}
+.dim-bar{
+  height:10px;
+  background:#e1ebe6;
+  border-radius:6px;
+  overflow:hidden;
+  margin:10px 0 18px 0;
+}
+.dim-bar-inner{
+  height:100%;
+  background:#6fa58c;
+}
+small{
+  color:#666;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<!-- 测试说明 -->
+<div id="start" class="card">
+<h1>女性自我主体性测试</h1>
+<p>
+这个测试源于一个常被忽略的经验：  
+许多女性并不是不知道自己不舒服，而是在长期的关系、角色与期待中，
+逐渐习惯将这些感受放在一边。
+<br><br>
+本测试不评估好坏，也不提供行为建议。  
+它试图呈现的是：你在觉察、关系、内在拉扯与结构条件中，
+通常站在什么位置。
+</p >
+<button onclick="startTest()">开始测试</button>
+</div>
+
+<!-- 测试页 -->
+<div id="test" class="card hidden">
+<div class="progressbar"><div class="progress" id="bar"></div></div>
+<h2 id="question"></h2>
+<div id="options"></div>
+</div>
+
+<!-- 结果页 -->
+<div id="result" class="card hidden">
+<h2>你的测试结果</h2>
+<p id="totalScore"></p >
+<div id="overallText"></div>
+<div id="dimensionFeedback"></div>
+</div>
+
+</div>
+
+<script>
+// ================== 题目 ==================
+const questions = [
+  {t:"我能较早觉察到自己是否疲惫或不适。", d:0},
+  {t:"我会认真对待自己的真实感受。", d:0},
+  {t:"我能分辨这是我的需要还是他人的期待。", d:0},
+  {t:"我意识到自己什么时候在勉强。", d:0},
+
+  {t:"在关系中我常优先考虑对方感受。", d:1},
+  {t:"即使不舒服我也倾向于不说。", d:1},
+  {t:"我对拒绝他人感到心理压力。", d:1},
+  {t:"我习惯在关系中承担更多调和角色。", d:1},
+
+  {t:"我常在为自己与为关系之间犹豫。", d:2},
+  {t:"我会反复思考自己的选择是否自私。", d:2},
+  {t:"即使知道想要什么，也难以真正行动。", d:2},
+  {t:"我会在做出决定后继续自我怀疑。", d:2},
+
+  {t:"我常感到持续性的疲惫。", d:3},
+  {t:"我承担了较多情绪照顾工作。", d:3},
+  {t:"我有时感到情绪被压平或麻木。", d:3},
+  {t:"我很少有真正休息的心理空间。", d:3},
+
+  {t:"我意识到性别角色对我有影响。", d:4},
+  {t:"我不会把所有困境都归因于自己。", d:4},
+  {t:"我能区分个人问题与结构性限制。", d:4},
+  {t:"我理解很多压力并非我造成。", d:4}
+];
+
+const labels = ["非常不像我","不太像","一般","比较像","非常像"];
+let index=0, answers=[];
+
+// ================== 流程 ==================
+function startTest(){
+  start.classList.add("hidden");
+  test.classList.remove("hidden");
+  showQuestion();
+}
+function showQuestion(){
+  question.innerText = questions[index].t;
+  options.innerHTML="";
+  labels.forEach((l,i)=>{
+    const div=document.createElement("div");
+    div.className="option";
+    div.innerText=l;
+    div.onclick=()=>next(i+1);
+    options.appendChild(div);
+  });
+  bar.style.width=(index/questions.length*100)+"%";
+}
+function next(v){
+  answers.push(v);
+  index++;
+  index<questions.length ? showQuestion() : finish();
+}
+
+// ================== 结果 ==================
+function finish(){
+  test.classList.add("hidden");
+  result.classList.remove("hidden");
+
+  const dims=[[],[],[],[],[]];
+  answers.forEach((v,i)=>dims[questions[i].d].push(v));
+  const scores=dims.map(d=>Math.round(d.reduce((a,b)=>a+b,0)/d.length*20));
+  const total=Math.round(scores.reduce((a,b)=>a+b,0)/5);
+
+  totalScore.innerHTML=`<strong>总体主体性指数：${total} / 100</strong>`;
+  overallText.innerHTML=overallFeedback(total);
+
+  const names=["自我觉察","关系位置","内在拉扯","情绪代价","结构意识"];
+  let html="";
+  scores.forEach((s,i)=>{
+    html+=`
+    <div class="dimension">
+      <h3>${names[i]}（${s}/100）</h3>
+      <div class="dim-bar"><div class="dim-bar-inner" style="width:${s}%"></div></div>
+      ${getDimensionFeedback(i,s)}
+    </div>`;
+  });
+  dimensionFeedback.innerHTML=html;
+}
+
+// ================== 文本 ==================
+function overallFeedback(s){
+  if(s<45) return "<p>你当前可能较多地将关系、期待或稳定性置于自身感受之前。这更像是一种长期形成的适应位置，而不是个人能力问题。</p >";
+  if(s<60) return "<p>你已经能够觉察自我，但在现实中，主体性仍需要为关系与规范让路。</p >";
+  if(s<75) return "<p>你正处在觉察与行动之间的拉扯期，主体性正在形成。</p >";
+  if(s<90) return "<p>你在多个领域中建立了较为稳定的主体位置，但这往往需要额外心理能量维持。</p >";
+  return "<p>你具备高度自我觉察与结构理解，同时清楚自主并非没有代价。</p >";
+}
+
+function getDimensionFeedback(d,s){
+const texts=[
+[
+"<p>你可能较少停下来确认自己的真实状态，更容易忽略身体与情绪的信号。这通常并非因为你不敏感，而是你可能长期被训练去优先应对外部需求。</p >",
+"<p>你已经能够在一定程度上觉察自我，但这种觉察仍可能被现实情境打断。你知道自己在勉强，却未必总能停下来。</p >",
+"<p>你对自身状态有较高敏感度，能较早觉察不适，并认真对待这些信号。</p >"
+],
+[
+"<p>你在关系中较容易让渡位置，把稳定与和谐放在首位。这可能让你长期承担更多心理压力。</p >",
+"<p>你开始意识到关系中的不平衡，但仍会反复权衡是否值得表达。</p >",
+"<p>你能在关系中保有相对清晰的自我位置，理解亲密并不等于自我消失。</p >"
+],
+[
+"<p>你常处于内在冲突之中，为自己的需要感到犹豫或内疚。</p >",
+"<p>你已经意识到拉扯的存在，但尚未在所有领域找到稳定出口。</p >",
+"<p>你能较好整合自我需要与现实条件，内在冲突相对较少。</p >"
+],
+[
+"<p>你可能已经习惯了承担过多情绪劳动，疲惫感被长期正常化。</p >",
+"<p>你开始觉察这些代价，但仍在学习如何真正休息。</p >",
+"<p>你对自身情绪消耗有清晰意识，并能适度进行调节。</p >"
+],
+[
+"<p>你可能倾向于将压力与困境归因为个人不足。</p >",
+"<p>你已经开始理解环境与结构的影响。</p >",
+"<p>你能清楚区分个人责任与结构限制，不轻易自责。</p >"
+]
+];
+return s<45?texts[d][0]:s<70?texts[d][1]:texts[d][2];
+}
+</script>
+</body>
+</html>
